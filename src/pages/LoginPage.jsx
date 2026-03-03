@@ -1,0 +1,116 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
+
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Test connection on mount
+  useEffect(() => {
+    supabase.from('categories').select('id').limit(1)
+      .then(({ data, error }) => {
+        if (error) console.error('Connection Test Failed:', error);
+        else console.log('Connection Test Success:', data);
+      });
+  }, []);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    console.log('Attempting login with:', email);
+    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+
+    try {
+      if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('YOUR_')) {
+        throw new Error('Supabase URL is not configured in .env');
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('Supabase Auth Error:', error);
+        toast.error(error.message);
+      } else if (data.session) {
+        toast.success('Welcome back, Admin');
+        navigate('/admin');
+      }
+    } catch (err) {
+      console.error('Login Process Error:', err);
+      toast.error('Connection failed: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-mystic-black flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Mystical Background Decorations */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-mystic-red/10 blur-[120px] rounded-full" />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative w-full max-w-md bg-mystic-gray/20 backdrop-blur-xl border border-mystic-red/15 rounded-2xl p-8 shadow-2xl"
+      >
+        <div className="text-center mb-8">
+          <div className="text-4xl mb-4">🔮</div>
+          <h1 className="font-heading text-3xl text-mystic-white text-glow">Irodiana Admin</h1>
+          <p className="text-mystic-gray-muted text-sm mt-2 font-medium tracking-widest uppercase">
+            Access the Sanctum
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div>
+            <label className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red font-bold mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-all"
+              placeholder="admin@shamlar.uz"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red font-bold mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-all"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={loading}
+            className="w-full py-4 bg-mystic-red text-mystic-white font-bold tracking-[0.2em] uppercase text-xs rounded-lg shadow-lg shadow-mystic-red/20 disabled:opacity-50 transition-all cursor-pointer overflow-hidden relative group"
+          >
+            <span className="relative z-10">{loading ? 'Verifying...' : 'Login'}</span>
+            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+          </motion.button>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
+export default LoginPage;

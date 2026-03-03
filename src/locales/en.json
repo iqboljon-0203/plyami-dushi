@@ -1,0 +1,98 @@
+{
+  "brand": "Flame of the Soul",
+  "sidebar": {
+    "categories": "Candle Categories"
+  },
+  "candles": {
+    "red": {
+      "label": "Red Candles",
+      "title": "Magic Red Candles",
+      "description": "The red candle is a symbol of passion, willpower, and fiery energy. Light it to awaken courage, attract love, or amplify your vital force. The red flame vibrates at the frequency of determination and desire.",
+      "element": "Fire",
+      "properties": ["Passion", "Willpower", "Love", "Courage"]
+    },
+    "white": {
+      "label": "White Candles",
+      "title": "Magic White Candles",
+      "description": "The white candle is a universal symbol of purity, healing, and spiritual enlightenment. It cleanses space of negative energy and opens channels of communication with higher powers. The white flame is the beginning of all beginnings.",
+      "element": "Light",
+      "properties": ["Purity", "Healing", "Protection", "Spirituality"]
+    },
+    "green": {
+      "label": "Green Candles",
+      "title": "Magic Green Candles",
+      "description": "The green candle carries the energy of growth, prosperity, and renewal. Use it to attract abundance, financial success, and harmony with nature. The green flame is the breath of the earth itself.",
+      "element": "Earth",
+      "properties": ["Prosperity", "Growth", "Abundance", "Harmony"]
+    },
+    "orange": {
+      "label": "Orange Candles",
+      "title": "Magic Orange Candles",
+      "description": "The orange candle is a beacon of joy, creativity, and attraction. It stimulates enthusiasm, unlocks creative potential, and helps achieve goals. The orange flame dances with the energy of success.",
+      "element": "Sun",
+      "properties": ["Creativity", "Joy", "Attraction", "Success"]
+    },
+    "black": {
+      "label": "Black Candles",
+      "title": "Magic Black Candles",
+      "description": "The black candle is a guardian of boundaries between worlds. It absorbs negative energy, destroys curses, and protects from dark forces. The black flame is a shield that reflects all evil back to its source.",
+      "element": "Darkness",
+      "properties": ["Protection", "Banishment", "Absorption", "Transformation"]
+    },
+    "blue": {
+      "label": "Blue Candles",
+      "title": "Magic Blue Candles",
+      "description": "The blue candle is a conductor of wisdom, tranquility, and intuition. Light it for meditation, developing clairvoyance, and finding inner peace. The blue flame is a mirror of the subconscious depths.",
+      "element": "Water",
+      "properties": ["Wisdom", "Tranquility", "Intuition", "Meditation"]
+    },
+    "violet": {
+      "label": "Violet Candles",
+      "title": "Magic Violet Candles",
+      "description": "The violet candle is the key to higher consciousness and mystical secrets. It amplifies psychic abilities, opens the third eye, and connects with cosmic energy. The violet flame is a portal to the unseen.",
+      "element": "Ether",
+      "properties": ["Clairvoyance", "Mysteries", "Cosmos", "Spiritual Power"]
+    }
+  },
+  "about": {
+    "title": "About Me",
+    "subtitle": "Keeper of the Flame",
+    "description": "I am a practitioner of ancient traditions, dedicating my life to studying the mystical properties of candles and their influence on energy flows. Each candle in my collection is a tool of transformation, created with intention and consecrated by ritual.",
+    "years": "years of experience",
+    "rituals": "rituals performed",
+    "clients": "satisfied clients"
+  },
+  "buttons": {
+    "learnMore": "Learn More",
+    "contactUs": "Contact Us",
+    "explore": "Explore",
+    "buyNow": "Buy Now",
+    "addToCart": "Add to Cart",
+    "backToTop": "Back to Top"
+  },
+  "language": {
+    "ru": "Rus",
+    "en": "Eng"
+  },
+  "poll": {
+    "title": "Mystic Poll",
+    "question": "Do you feel the energy?",
+    "subtitle": "The mysterious power of candles permeates the space. Do you sense its presence?",
+    "yes": "Yes",
+    "no": "No",
+    "thanks": "Your voice has been heard. The flame remembers.",
+    "totalVotes": "votes"
+  },
+  "modal": {
+    "title": "Send a Request",
+    "subtitle": "Fill out the form, and we will help you choose the perfect candle.",
+    "fullName": "First and Last Name",
+    "placeholderName": "John Doe",
+    "category": "Select Category",
+    "phone": "Phone Number",
+    "submit": "Submit Request",
+    "sending": "Sending...",
+    "successTitle": "Request Received!",
+    "successDesc": "We will contact you shortly. The flame of the soul awaits you."
+  }
+}

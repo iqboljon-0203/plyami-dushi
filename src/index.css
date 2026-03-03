@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   Пламя души — Mystic Design System
+   ═══════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Mystic Color Palette ── */
+  --color-mystic-black: var(--mystic-black);
+  --color-mystic-red: var(--mystic-red);
+  --color-mystic-white: var(--mystic-white);
+
+  /* ── Extended Palette ── */
+  --color-mystic-red-light: var(--mystic-red-light);
+  --color-mystic-red-dark: var(--mystic-red-dark);
+  --color-mystic-gray: var(--mystic-gray);
+  --color-mystic-gray-light: var(--mystic-gray-light);
+  --color-mystic-gray-muted: var(--mystic-gray-muted);
+
+  /* ── Fonts ── */
+  --font-heading: 'Cormorant Garamond', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-brand: 'Philosopher', sans-serif;
+}
+
+/* ── Theme Definitions ── */
+:root {
+  /* Dark Mode (Default) */
+  --mystic-black: #050505;
+  --mystic-red: #D32F2F;
+  --mystic-white: #F5F5F5;
+  --mystic-red-light: #FF5252;
+  --mystic-red-dark: #9A0007;
+  --mystic-gray: #1A1A1A;
+  --mystic-gray-light: #2A2A2A;
+  --mystic-gray-muted: #888888;
+}
+
+.light-theme {
+  /* Light Mode (Sepia / Parchment tones) */
+  --mystic-black: #F4EAD5;      /* Sepia backing */
+  --mystic-white: #312E2B;      /* Dark ink */
+  --mystic-red: #B52A2A;        /* Deep wax red */
+  --mystic-red-light: #D32F2F;
+  --mystic-red-dark: #811D1D;
+  --mystic-gray: #E0CFA8;       /* Subtle shadow map */
+  --mystic-gray-light: #CAA872; /* Deeper shadow map */
+  --mystic-gray-muted: #544330; /* Darker brown for better contrast on sepia */
+}
+
+
+
+@layer base {
+  *, ::before, ::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-body);
+    background-color: var(--color-mystic-black);
+    color: var(--color-mystic-white);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-mystic-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-mystic-red);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-mystic-red-light);
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--color-mystic-red);
+  color: var(--color-mystic-white);
+}
+
+/* ── Utility Classes ── */
+.text-glow {
+  text-shadow: 0 0 10px rgba(211, 47, 47, 0.5),
+               0 0 20px rgba(211, 47, 47, 0.3),
+               0 0 40px rgba(211, 47, 47, 0.1);
+}
+
+.border-glow {
+  box-shadow: 0 0 15px rgba(211, 47, 47, 0.2),
+              inset 0 0 15px rgba(211, 47, 47, 0.05);
+}
+
+.glass {
+  background: var(--mystic-gray-light);
+  opacity: 0.8;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--mystic-red);
+}
