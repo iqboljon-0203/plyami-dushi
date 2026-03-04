@@ -106,8 +106,15 @@ const AdminPanel = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Logout error caught:', error);
+    } finally {
+      // Always clear local session and redirect
+      localStorage.removeItem('sb-' + import.meta.env.VITE_SUPABASE_URL.split('//')[1].split('.')[0] + '-auth-token');
+      navigate('/login');
+    }
   };
 
   const uploadImage = async (file) => {

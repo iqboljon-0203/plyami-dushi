@@ -7,16 +7,26 @@ import toast from 'react-hot-toast';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Load saved email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('remembered_admin_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRemember(true);
+    }
+  }, []);
 
   // Test connection on mount
   useEffect(() => {
     supabase.from('categories').select('id').limit(1)
       .then(({ data, error }) => {
         if (error) console.error('Connection Test Failed:', error);
-        else console.log('Connection Test Success:', data);
-      });
+      })
+      .catch(err => console.error('Supabase fetch error:', err));
   }, []);
 
   const handleLogin = async (e) => {
@@ -36,8 +46,14 @@ const LoginPage = () => {
       if (error) {
         toast.error(error.message);
       } else if (data.session) {
+        // Save or clear email based on remember state
+        if (remember) {
+          localStorage.setItem('remembered_admin_email', email);
+        } else {
+          localStorage.removeItem('remembered_admin_email');
+        }
+
         toast.success('Welcome back, Admin');
-        // Redirect to root which is AdminPanel on subdomain
         navigate('/');
       }
     } catch (err) {
@@ -74,6 +90,7 @@ const LoginPage = () => {
               id="email"
               type="email"
               required
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-all font-body"
@@ -90,12 +107,26 @@ const LoginPage = () => {
               id="password"
               type="password"
               required
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-all font-body"
               placeholder="••••••••"
               aria-label="Password"
             />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              id="remember"
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="w-4 h-4 rounded border-mystic-red/30 bg-white/5 text-mystic-red focus:ring-mystic-red/50 cursor-pointer"
+            />
+            <label htmlFor="remember" className="text-xs text-mystic-gray-muted cursor-pointer hover:text-mystic-white transition-colors">
+              Remember me
+            </label>
           </div>
 
           <motion.button
