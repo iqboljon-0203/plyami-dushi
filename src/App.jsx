@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useMediaQuery from './hooks/useMediaQuery';
 import SmokeBackground from './components/SmokeBackground';
@@ -7,12 +7,26 @@ import ContentDisplay from './components/ContentDisplay';
 import Navbar from './components/Navbar';
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './pages/LoginPage';
-import AdminPanel from './pages/AdminPanel';
 import AboutMe from './components/AboutMe';
 import MysticPoll from './components/MysticPoll';
 import BookingModal from './components/BookingModal';
 import { Toaster } from 'react-hot-toast';
+
+// Lazy load admin routes to shrink initial bundle
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+
+const LoadingFallback = () => (
+  <div className="min-h-screen bg-mystic-black flex items-center justify-center text-mystic-red">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      className="text-4xl"
+    >
+      🔮
+    </motion.div>
+  </div>
+);
 
 function App() {
   const [activeCategory, setActiveCategory] = useState('about');
@@ -99,23 +113,46 @@ function App() {
   );
 
   // Detect subdomain for admin access
-  const isAdminSubdomain = window.location.hostname.startsWith('admin.');
+  const hostname = window.location.hostname;
+  const isAdminSubdomain = hostname.startsWith('admin.') || hostname.startsWith('www.admin.');
 
   if (isAdminSubdomain) {
     return (
       <>
         <Toaster position="top-center" reverseOrder={false} />
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route 
+              path="/" 
+              element={
+                <ProtectedRoute>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } 
+            />
+            {/* Support legacy /admin path even on subdomain */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </Suspense>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Toaster position="top-center" reverseOrder={false} />
+      <Suspense fallback={<LoadingFallback />}>
         <Routes>
+          <Route path="/" element={<MainLayout />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <AdminPanel />
-              </ProtectedRoute>
-            } 
-          />
-          {/* Support legacy /admin path even on subdomain */}
           <Route 
             path="/admin" 
             element={
@@ -125,25 +162,7 @@ function App() {
             } 
           />
         </Routes>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Toaster position="top-center" reverseOrder={false} />
-      <Routes>
-        <Route path="/" element={<MainLayout />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute>
-              <AdminPanel />
-            </ProtectedRoute>
-          } 
-        />
-      </Routes>
+      </Suspense>
     </>
   );
 }

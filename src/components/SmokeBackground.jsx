@@ -115,31 +115,44 @@ const SmokeBackground = () => {
     }
 
     // Dynamic particle count based on screen size (saving mobile performance)
-    const PARTICLE_COUNT = window.innerWidth < 768 ? 15 : 30;
+    const PARTICLE_COUNT = window.innerWidth < 768 ? 15 : 25;
     for (let i = 0; i < PARTICLE_COUNT; i++) {
         particles.push(new SmokeParticle());
     }
+
+    // ── Pre-calculate background color and handle theme changes ──
+    let currentBgColor = '#050505';
+    
+    const updateBgColor = () => {
+      const isLight = document.body.classList.contains('light-theme');
+      currentBgColor = isLight ? '#F4EAD5' : '#050505';
+    };
+    
+    updateBgColor(); // initial call
+
+    const observer = new MutationObserver(updateBgColor);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
     // ── Animation Loop ──
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      if (!isTabActive) return; // Pause calculation when hidden
+      if (!isTabActive) return;
 
-      // Ensure background color fills properly if using alpha: false
-      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--color-mystic-black') || '#050505';
+      ctx.fillStyle = currentBgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      particles.forEach((p) => {
-        p.update();
-        p.draw(ctx);
-      });
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw(ctx);
+      }
     };
 
     animate();
 
     return () => {
       cancelAnimationFrame(animationId);
+      observer.disconnect();
       window.removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };

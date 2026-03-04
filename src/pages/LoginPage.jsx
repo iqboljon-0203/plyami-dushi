@@ -23,9 +23,6 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    console.log('Attempting login with:', email);
-    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-
     try {
       if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('YOUR_')) {
         throw new Error('Supabase URL is not configured in .env');
@@ -37,14 +34,13 @@ const LoginPage = () => {
       });
 
       if (error) {
-        console.error('Supabase Auth Error:', error);
         toast.error(error.message);
       } else if (data.session) {
         toast.success('Welcome back, Admin');
-        navigate('/admin');
+        // Redirect to root which is AdminPanel on subdomain
+        navigate('/');
       }
     } catch (err) {
-      console.error('Login Process Error:', err);
       toast.error('Connection failed: ' + err.message);
     } finally {
       setLoading(false);
@@ -54,7 +50,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-mystic-black flex items-center justify-center p-6 relative overflow-hidden">
       {/* Mystical Background Decorations */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-mystic-red/10 blur-[120px] rounded-full" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-mystic-red/10 blur-[120px] rounded-full" aria-hidden="true" />
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -62,7 +58,7 @@ const LoginPage = () => {
         className="relative w-full max-w-md bg-mystic-gray/20 backdrop-blur-xl border border-mystic-red/15 rounded-2xl p-8 shadow-2xl"
       >
         <div className="text-center mb-8">
-          <div className="text-4xl mb-4">🔮</div>
+          <div className="text-4xl mb-4" aria-hidden="true">🔮</div>
           <h1 className="font-heading text-3xl text-mystic-white text-glow">Irodiana Admin</h1>
           <p className="text-mystic-gray-muted text-sm mt-2 font-medium tracking-widest uppercase">
             Access the Sanctum
@@ -71,30 +67,34 @@ const LoginPage = () => {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red font-bold mb-2">
+            <label htmlFor="email" className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red font-bold mb-2">
               Email Address
             </label>
             <input
+              id="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-all"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-all font-body"
               placeholder="admin@shamlar.uz"
+              aria-label="Email address"
             />
           </div>
 
           <div>
-            <label className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red font-bold mb-2">
+            <label htmlFor="password" name="password" className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red font-bold mb-2">
               Password
             </label>
             <input
+              id="password"
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-all"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-all font-body"
               placeholder="••••••••"
+              aria-label="Password"
             />
           </div>
 
@@ -102,6 +102,8 @@ const LoginPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             disabled={loading}
+            type="submit"
+            aria-label={loading ? 'Verifying credentials' : 'Login to Admin Panel'}
             className="w-full py-4 bg-mystic-red text-mystic-white font-bold tracking-[0.2em] uppercase text-xs rounded-lg shadow-lg shadow-mystic-red/20 disabled:opacity-50 transition-all cursor-pointer overflow-hidden relative group"
           >
             <span className="relative z-10">{loading ? 'Verifying...' : 'Login'}</span>
