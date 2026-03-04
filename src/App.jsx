@@ -12,6 +12,7 @@ import AdminPanel from './pages/AdminPanel';
 import AboutMe from './components/AboutMe';
 import MysticPoll from './components/MysticPoll';
 import BookingModal from './components/BookingModal';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const [activeCategory, setActiveCategory] = useState('about');
@@ -97,19 +98,53 @@ function App() {
     </div>
   );
 
+  // Detect subdomain for admin access
+  const isAdminSubdomain = window.location.hostname.startsWith('admin.');
+
+  if (isAdminSubdomain) {
+    return (
+      <>
+        <Toaster position="top-center" reverseOrder={false} />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <AdminPanel />
+              </ProtectedRoute>
+            } 
+          />
+          {/* Support legacy /admin path even on subdomain */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+                <AdminPanel />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </>
+    );
+  }
+
   return (
-    <Routes>
-      <Route path="/" element={<MainLayout />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute>
-            <AdminPanel />
-          </ProtectedRoute>
-        } 
-      />
-    </Routes>
+    <>
+      <Toaster position="top-center" reverseOrder={false} />
+      <Routes>
+        <Route path="/" element={<MainLayout />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <AdminPanel />
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+    </>
   );
 }
 

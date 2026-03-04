@@ -8,57 +8,58 @@ export const AppProvider = ({ children }) => {
   const [theme, setTheme] = useState('dark');
   const [categories, setCategories] = useState([]);
   const [dbCategories, setDbCategories] = useState([]);
+  const [polls, setPolls] = useState([]);
+  const [about, setAbout] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch categories from Supabase
-  const fetchCategories = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*');
+      setLoading(true);
       
-      if (error) throw error;
-      setDbCategories(data || []);
+      // Fetch everything in parallel
+      const [catRes, pollsRes, aboutRes] = await Promise.all([
+        supabase.from('categories').select('*').order('id'),
+        supabase.from('polls').select('*').order('id', { ascending: false }),
+        supabase.from('about_content').select('*').maybeSingle()
+      ]);
+
+      if (catRes.error) console.error('Error fetching categories:', catRes.error);
+      if (pollsRes.error) console.error('Error fetching polls:', pollsRes.error);
+      if (aboutRes.error) console.error('Error fetching about:', aboutRes.error);
+
+      setDbCategories(catRes.data || []);
+      setPolls(pollsRes.data || []);
+      setAbout(aboutRes.data);
+      
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('Context initialization error:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchData();
   }, []);
 
-  // Combine local and DB categories
+  // Combine local and DB categories for the UI
   useEffect(() => {
-    // Start with local candles
-    const localMap = new Map(candles.map(c => [c.id, c]));
-    
-    // Add or override with DB categories
-    dbCategories.forEach(dbCat => {
-      const existing = localMap.get(dbCat.id);
-      if (existing) {
-        // Update existing local candle with DB data
-        localMap.set(dbCat.id, {
-          ...existing,
-          image: dbCat.image_url || existing.image,
-          // We keep color from local constants for now
-          // description/title will come from i18n but we can fallback to DB
-          dbData: dbCat
-        });
-      } else {
-        // It's a brand new category
-        localMap.set(dbCat.id, {
-          id: dbCat.id,
-          color: '#8B0000', // Default mystic red for new ones
-          image: dbCat.image_url,
-          dbData: dbCat
-        });
-      }
-    });
-
-    setCategories(Array.from(localMap.values()));
+    if (dbCategories.length === 0) {
+      // Fallback to local data if DB is empty
+      setCategories(candles.map(c => ({
+        ...c,
+        image_url: c.image,
+        dbData: null
+      })));
+    } else {
+      // DB is the source of truth
+      setCategories(dbCategories.map(dbCat => ({
+        id: dbCat.id,
+        color: dbCat.color,
+        image_url: dbCat.image_url,
+        dbData: dbCat
+      })));
+    }
   }, [dbCategories]);
 
   const toggleTheme = () => {
@@ -73,8 +74,10 @@ export const AppProvider = ({ children }) => {
     theme,
     toggleTheme,
     categories,
+    polls,
+    about,
     loading,
-    refreshCategories: fetchCategories
+    refreshData: fetchData
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

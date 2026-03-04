@@ -9,14 +9,21 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    proxy: {
-      '/rest/v1': {
-        target: 'https://hldcabxeueretuwqtqnb.supabase.co',
-        changeOrigin: true,
-      },
-      '/auth/v1': {
-        target: 'https://hldcabxeueretuwqtqnb.supabase.co',
-        changeOrigin: true,
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: true
+  },
+  build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-framer': ['framer-motion'],
+          'vendor-utils': ['lucide-react', 'react-hot-toast', 'i18next']
+        }
       }
     }
   }

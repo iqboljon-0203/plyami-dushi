@@ -1,213 +1,149 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useAppContext } from '../context/AppContext';
+import { supabase } from '../lib/supabase';
+
+const PollCard = ({ poll, refreshData, lang }) => {
+  const [voted, setVoted] = useState(false);
+  const [isCasting, setIsCasting] = useState(false);
+
+  useEffect(() => {
+    const hasVoted = localStorage.getItem(`voted_poll_${poll.id}`);
+    if (hasVoted) setVoted(true);
+  }, [poll.id]);
+
+  const options = poll.options || [];
+  const totalVotes = options.reduce((sum, opt) => sum + (opt.votes || 0), 0);
+
+  const handleVote = async (index) => {
+    if (voted || isCasting) return;
+    
+    setIsCasting(true);
+    const newOptions = [...options];
+    newOptions[index].votes = (newOptions[index].votes || 0) + 1;
+    
+    try {
+      const { error } = await supabase.from('polls').update({ options: newOptions }).eq('id', poll.id);
+      if (error) throw error;
+      
+      localStorage.setItem(`voted_poll_${poll.id}`, 'true');
+      setVoted(true);
+      refreshData();
+    } catch (err) {
+      console.error('Error casting vote:', err);
+    } finally {
+      setIsCasting(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      className="relative p-10 rounded-3xl border border-mystic-red/10 bg-mystic-black/40 backdrop-blur-xl overflow-hidden shadow-2xl transition-all"
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-mystic-red/5 blur-3xl pointer-events-none" />
+      
+      <h3 className="font-heading text-2xl md:text-3xl text-white text-glow mb-2 text-center">
+        {poll[`question_${lang}`]}
+      </h3>
+      <p className="text-mystic-gray-muted text-[10px] uppercase tracking-[0.2em] font-bold mb-10 text-center opacity-60">
+        {lang === 'ru' ? 'Ритуальный опрос' : 'Ritual Inquiry'}
+      </p>
+
+      <AnimatePresence mode="wait">
+        {!voted ? (
+          <motion.div key="options" className="flex flex-col gap-3 max-w-sm mx-auto">
+            {options.map((opt, i) => (
+              <motion.button
+                key={i}
+                onClick={() => handleVote(i)}
+                disabled={isCasting}
+                className="group relative py-4 rounded-xl border border-mystic-red/20 text-mystic-red text-[11px] font-black
+                           tracking-[0.1em] uppercase cursor-pointer overflow-hidden transition-all duration-300
+                           hover:border-mystic-red hover:text-white disabled:opacity-50"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <span className="relative z-10">{opt[`label_${lang}`]}</span>
+                <div className="absolute inset-0 bg-mystic-red origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+              </motion.button>
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div key="results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-md mx-auto">
+             {options.map((opt, i) => {
+               const percent = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+               return (
+                 <div key={i} className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-mystic-gray-muted">
+                       <span>{opt[`label_${lang}`]}</span>
+                       <span className="text-mystic-red">{percent}%</span>
+                    </div>
+                    <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                       <motion.div 
+                          className="h-full bg-mystic-red shadow-[0_0_8px_#d32f2f]" 
+                          initial={{ width: 0 }} 
+                          animate={{ width: `${percent}%` }} 
+                          transition={{ duration: 1, ease: 'circOut' }} 
+                       />
+                    </div>
+                 </div>
+               );
+             })}
+             <p className="text-[9px] text-mystic-gray-muted/40 uppercase tracking-[0.2em] pt-4 italic text-center">
+                {totalVotes} {lang === 'ru' ? 'голосов резонирует' : 'votes resonating'}
+             </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
 
 const MysticPoll = ({ sidebarExpanded, isMobile }) => {
-  const { t } = useTranslation();
-  const [voted, setVoted] = useState(false);
-  const [choice, setChoice] = useState(null);
-  const [yesCount, setYesCount] = useState(73);
-  const [noCount, setNoCount] = useState(12);
+  const { i18n } = useTranslation();
+  const { polls, refreshData } = useAppContext();
+  const lang = i18n.language === 'ru' ? 'ru' : 'en';
 
-  const total = yesCount + noCount;
-  const yesPercent = Math.round((yesCount / total) * 100);
-  const noPercent = 100 - yesPercent;
-
-  const handleVote = (answer) => {
-    if (voted) return;
-    setChoice(answer);
-    if (answer === 'yes') setYesCount((c) => c + 1);
-    else setNoCount((c) => c + 1);
-    setVoted(true);
-  };
+  if (!polls || polls.length === 0) return null;
 
   return (
     <motion.section
       id="mystic-poll"
-      className="relative min-h-screen py-24 px-6 md:px-10 flex items-center justify-center"
-      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-      initial={{ opacity: 0, y: 40 }}
+      className="relative min-h-screen py-32 px-6 md:px-10 flex flex-col items-center"
+      transition={{ duration: 0.4 }}
+      initial={{ opacity: 0 }}
       animate={{ 
         opacity: 1, 
-        y: 0, 
         paddingLeft: isMobile ? 24 : (sidebarExpanded ? 340 : 100) + 40,
         paddingRight: isMobile ? 24 : 40 
       }}
-      exit={{ opacity: 0, y: -20 }}
     >
-      <div className="relative w-full max-w-2xl">
-        {/* ── Card ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="relative p-10 md:p-14 rounded-2xl border border-mystic-red/15 bg-mystic-gray/20 backdrop-blur-sm overflow-hidden text-center"
-        >
-          {/* Ambient glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-mystic-red/8 blur-[80px] pointer-events-none" />
+      <div className="w-full max-w-3xl space-y-20">
+        <div className="text-center space-y-4">
+           <motion.div 
+             initial={{ scale: 0 }}
+             whileInView={{ scale: 1 }}
+             className="w-16 h-16 bg-mystic-red/10 border border-mystic-red/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(211,47,47,0.2)]"
+           >
+             <span className="text-2xl">🔮</span>
+           </motion.div>
+           <h2 className="text-4xl md:text-5xl font-heading text-white text-glow">
+             {lang === 'ru' ? 'Мистический Резонанс' : 'Mystical Resonance'}
+           </h2>
+           <p className="text-mystic-gray-muted text-sm max-w-md mx-auto leading-relaxed">
+             {lang === 'ru' ? 'Позвольте вашей интуиции направить энергию в нужное русло. Каждый голос меняет видение будущего.' : 'Let your intuition guide the energy. Every choice shifts the vision of the future.'}
+           </p>
+        </div>
 
-          {/* Icon */}
-          <motion.div
-            className="text-4xl mb-6"
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            🔮
-          </motion.div>
-
-          {/* Question */}
-          <h3 className="font-heading text-2xl md:text-3xl text-mystic-white text-glow mb-3">
-            {t('poll.question')}
-          </h3>
-          <p className="text-mystic-gray-muted text-sm mb-10 max-w-md mx-auto">
-            {t('poll.subtitle')}
-          </p>
-
-          <AnimatePresence mode="wait">
-            {!voted ? (
-              /* ── Voting Buttons ── */
-              <motion.div
-                key="buttons"
-                className="flex justify-center gap-5"
-                exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
-              >
-                <motion.button
-                  id="poll-yes"
-                  onClick={() => handleVote('yes')}
-                  className="relative px-10 py-3 rounded-lg border border-mystic-red/30 text-mystic-red text-sm font-medium
-                             tracking-widest uppercase cursor-pointer overflow-hidden transition-all duration-300
-                             hover:border-mystic-red hover:text-mystic-white hover:bg-mystic-red/20"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="relative z-10">✦ {t('poll.yes')}</span>
-                </motion.button>
-
-                <motion.button
-                  id="poll-no"
-                  onClick={() => handleVote('no')}
-                  className="relative px-10 py-3 rounded-lg border border-mystic-gray-muted/30 text-mystic-gray-muted text-sm font-medium
-                             tracking-widest uppercase cursor-pointer overflow-hidden transition-all duration-300
-                             hover:border-mystic-white/40 hover:text-mystic-white hover:bg-mystic-gray-light/30"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="relative z-10">✧ {t('poll.no')}</span>
-                </motion.button>
-              </motion.div>
-            ) : (
-              /* ── Success Results ── */
-              <motion.div
-                key="results"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-                className="space-y-6"
-              >
-                {/* Success burst */}
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
-                  className="text-center mb-6"
-                >
-                  <motion.span
-                    className="inline-block text-5xl"
-                    animate={{
-                      textShadow: [
-                        '0 0 10px rgba(211,47,47,0.3)',
-                        '0 0 30px rgba(211,47,47,0.7)',
-                        '0 0 10px rgba(211,47,47,0.3)',
-                      ],
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    {choice === 'yes' ? '🔥' : '🌙'}
-                  </motion.span>
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="font-heading text-lg text-mystic-white mt-3"
-                  >
-                    {t('poll.thanks')}
-                  </motion.p>
-                </motion.div>
-
-                {/* Yes bar */}
-                <div>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className={choice === 'yes' ? 'text-mystic-red font-medium' : 'text-mystic-gray-muted'}>
-                      ✦ {t('poll.yes')}
-                    </span>
-                    <span className="text-mystic-gray-muted">{yesPercent}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-mystic-gray-light overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-mystic-red to-mystic-red-light"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${yesPercent}%` }}
-                      transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
-                    />
-                  </div>
-                </div>
-
-                {/* No bar */}
-                <div>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className={choice === 'no' ? 'text-mystic-white font-medium' : 'text-mystic-gray-muted'}>
-                      ✧ {t('poll.no')}
-                    </span>
-                    <span className="text-mystic-gray-muted">{noPercent}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-mystic-gray-light overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-mystic-gray-muted to-mystic-gray-light"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${noPercent}%` }}
-                      transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Total votes */}
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1 }}
-                  className="text-mystic-gray-muted/50 text-xs text-center pt-2"
-                >
-                  {total} {t('poll.totalVotes')}
-                </motion.p>
-
-                {/* Floating particle effects on success */}
-                {[...Array(6)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-1 h-1 rounded-full bg-mystic-red"
-                    style={{
-                      left: `${30 + Math.random() * 40}%`,
-                      top: '50%',
-                    }}
-                    initial={{ opacity: 1, y: 0, scale: 1 }}
-                    animate={{
-                      opacity: 0,
-                      y: -(80 + Math.random() * 120),
-                      x: (Math.random() - 0.5) * 100,
-                      scale: 0,
-                    }}
-                    transition={{
-                      duration: 1.5 + Math.random(),
-                      delay: 0.1 * i,
-                      ease: 'easeOut',
-                    }}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+        <div className="grid grid-cols-1 gap-12">
+          {polls.map((p) => (
+            <PollCard key={p.id} poll={p} refreshData={refreshData} lang={lang} />
+          ))}
+        </div>
       </div>
     </motion.section>
   );

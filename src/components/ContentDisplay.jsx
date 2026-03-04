@@ -24,23 +24,18 @@ const ContentDisplay = ({ activeCategory, sidebarExpanded, isMobile, onOpenBooki
   
   if (!candle) return null;
 
+  // Translation helpers improved for DB priority
   const currentLang = i18n.language;
-  const isCustom = !!candle.dbData;
+  const langKey = currentLang === 'ru' ? 'ru' : 'en';
 
-  // Translation helpers
-  const getProp = (key, dbKey) => {
-    const fromI18n = t(key, { returnObjects: true });
-    // Check if translation exists and isn't just the key itself
-    if (fromI18n && fromI18n !== key) return fromI18n;
-    // Fallback to DB data for custom categories
-    if (isCustom && candle.dbData && candle.dbData[dbKey]) return candle.dbData[dbKey];
-    return null;
-  };
-
-  const properties = getProp(`candles.${candle.id}.properties`, 'properties') || [];
-  const title = getProp(`candles.${candle.id}.title`, 'id') || candle.id;
-  const description = getProp(`candles.${candle.id}.description`, currentLang === 'ru' ? 'description_ru' : 'description_en');
-  const element = getProp(`candles.${candle.id}.element`, 'element') || 'Flame';
+  const title = candle.dbData?.[`title_${langKey}`] || t(`candles.${candle.id}.title`, candle.id);
+  const description = candle.dbData?.[`description_${langKey}`] || t(`candles.${candle.id}.description`);
+  const element = candle.dbData?.[`element_${langKey}`] || t(`candles.${candle.id}.element`, 'Flame');
+  
+  const rawProps = candle.dbData?.[`properties_${langKey}`];
+  const properties = rawProps 
+    ? rawProps.split(',').map(p => p.trim()) 
+    : (t(`candles.${candle.id}.properties`, { returnObjects: true }) || []);
 
   return (
     <motion.main
@@ -196,6 +191,8 @@ const ContentDisplay = ({ activeCategory, sidebarExpanded, isMobile, onOpenBooki
                 src={candle.image || candle.image_url}
                 alt={title}
                 className="w-full h-[400px] md:h-[500px] object-cover"
+                loading="lazy"
+                decoding="async"
                 initial={{ scale: 1.1 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}

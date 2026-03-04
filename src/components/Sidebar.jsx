@@ -4,7 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import LanguageSwitcher from './LanguageSwitcher';
 
 const Sidebar = ({ activeCategory, onCategoryChange, isExpanded, onExpandChange, isMobile }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme, toggleTheme, categories } = useAppContext();
 
   return (
@@ -96,7 +96,7 @@ const Sidebar = ({ activeCategory, onCategoryChange, isExpanded, onExpandChange,
                     transition={{ duration: 0.15 }}
                     className="relative z-10 text-base font-medium tracking-wide whitespace-nowrap"
                   >
-                    {t(`candles.${candle.id}.label`, candle.id)}
+                    {candle.dbData?.[`label_${i18n.language}`] || t(`candles.${candle.id}.label`, candle.id)}
                   </motion.span>
                 )}
               </AnimatePresence>
