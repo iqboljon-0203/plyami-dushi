@@ -137,6 +137,7 @@ const ContentDisplay = ({ activeCategory, sidebarExpanded, isMobile, onOpenBooki
               variants={fadeSlideUp}
               onClick={onOpenBooking}
               id="cta-explore"
+              aria-label={t('buttons.learnMore')}
               className="group relative mt-6 w-fit px-8 py-3.5 text-[10px] tracking-[0.3em] uppercase font-bold
                          overflow-hidden cursor-pointer rounded-full transition-all duration-500"
               style={{
@@ -219,11 +220,15 @@ const ContentDisplay = ({ activeCategory, sidebarExpanded, isMobile, onOpenBooki
       </AnimatePresence>
 
       {/* ── Bottom ornament ── */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4" role="tablist">
         {categories.map((c) => (
-          <motion.div
+          <motion.button
             key={c.id}
-            className="w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer"
+            onClick={() => onCategoryChange(c.id)}
+            role="tab"
+            aria-selected={activeCategory === c.id}
+            aria-label={c.dbData?.[`label_${i18n.language}`] || t(`candles.${c.id}.label`, c.id)}
+            className="w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer border-none p-0 outline-none"
             style={{
               backgroundColor: activeCategory === c.id ? c.color : '#333',
             }}

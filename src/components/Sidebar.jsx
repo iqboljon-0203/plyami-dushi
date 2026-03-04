@@ -49,6 +49,8 @@ const Sidebar = ({ activeCategory, onCategoryChange, isExpanded, onExpandChange,
               key={candle.id}
               id={`nav-${candle.id}`}
               onClick={() => onCategoryChange(candle.id)}
+              aria-label={candle.dbData?.[`label_${i18n.language}`] || t(`candles.${candle.id}.label`, candle.id)}
+              aria-current={isActive ? 'page' : undefined}
               className={`
                 relative flex items-center gap-4 mx-4 px-4 py-3 rounded-lg
                 transition-colors duration-300 cursor-pointer group
@@ -126,6 +128,8 @@ const Sidebar = ({ activeCategory, onCategoryChange, isExpanded, onExpandChange,
                 <motion.button
                   key={page.id}
                   onClick={() => onCategoryChange(page.id)}
+                  aria-label={t(page.labelKey)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`
                     relative flex items-center gap-4 mx-4 px-4 py-3 rounded-lg
                     transition-colors duration-300 cursor-pointer group shrink-0
@@ -170,15 +174,16 @@ const Sidebar = ({ activeCategory, onCategoryChange, isExpanded, onExpandChange,
               <span className="text-xs tracking-widest uppercase text-mystic-gray-muted font-medium">
                 {t('sidebar.appearance', 'Appearance')}
               </span>
-              <div 
+              <button 
                 onClick={toggleTheme}
                 className="flex items-center gap-3 px-4 py-2 rounded-full border border-mystic-red/15 bg-mystic-gray/20 text-mystic-white cursor-pointer hover:border-mystic-red/40 transition-all active:scale-95"
+                aria-label={theme === 'dark' ? t('buttons.lightMode', 'Light Mode') : t('buttons.darkMode', 'Dark Mode')}
               >
-                <span className="text-lg">{theme === 'dark' ? '🌙' : '☀️'}</span>
+                <span className="text-lg" aria-hidden="true">{theme === 'dark' ? '🌙' : '☀️'}</span>
                 <span className="text-xs font-medium uppercase tracking-wider">
                   {theme === 'dark' ? t('buttons.darkMode', 'Dark') : t('buttons.lightMode', 'Light')}
                 </span>
-              </div>
+              </button>
             </div>
 
             <div className="flex items-center justify-between">

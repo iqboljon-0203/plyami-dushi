@@ -25,6 +25,8 @@ const Navbar = ({ activeCategory, onCategoryChange, sidebarExpanded, isMobile, m
           whileHover={{ scale: 1.1, rotate: [-5, 5, -5, 5, 0] }}
           transition={{ duration: 0.5 }}
           onClick={() => onCategoryChange('red')}
+          role="button"
+          aria-label={t('buttons.goHome', 'Go to Home')}
         >
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="drop-shadow-[0_0_15px_rgba(211,47,47,0.8)]" xmlns="http://www.w3.org/2000/svg">
             <path d="M11.999 1.636C11.999 1.636 5.518 7.37 5.518 13.06c0 3.75 2.923 6.816 6.55 6.816 3.627 0 6.549-3.066 6.549-6.816 0-5.69-6.618-11.424-6.618-11.424ZM12.068 18.067c-1.928 0-3.515-1.63-3.515-3.613 0-1.87 1.666-4.045 3.515-5.91 1.849 1.865 3.515 4.04 3.515 5.91 0 1.983-1.587 3.613-3.515 3.613Z" fill="url(#flame_grad)"/>
@@ -76,20 +78,22 @@ const Navbar = ({ activeCategory, onCategoryChange, sidebarExpanded, isMobile, m
       {/* ── Right side: Controls ── */}
       <div className="flex items-center gap-6">
         {/* Light / Dark Mode Switcher (Desktop only) */}
-        <div 
+        <button 
           onClick={toggleTheme}
           className="hidden lg:flex items-center justify-center w-10 h-10 rounded-full border border-mystic-red/15 bg-mystic-gray/20 text-mystic-gray-muted cursor-pointer hover:border-mystic-red/40 hover:text-mystic-white transition-all shadow-md active:scale-95"
           title={theme === 'dark' ? t('buttons.lightMode', 'Light Mode') : t('buttons.darkMode', 'Dark Mode')}
+          aria-label={theme === 'dark' ? t('buttons.lightMode', 'Light Mode') : t('buttons.darkMode', 'Dark Mode')}
         >
           <motion.span 
             className="text-xl"
             initial={false}
             animate={{ rotate: theme === 'light' ? 180 : 0, scale: theme === 'light' ? 0.9 : 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
+            aria-hidden="true"
           >
             {theme === 'dark' ? '🌙' : '☀️'}
           </motion.span>
-        </div>
+        </button>
 
         {/* Language Switcher (Desktop only) */}
         <div className="hidden lg:block">
@@ -100,6 +104,8 @@ const Navbar = ({ activeCategory, onCategoryChange, sidebarExpanded, isMobile, m
         <button
           className="lg:hidden text-mystic-white p-1 ml-4 focus:outline-none cursor-pointer"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? t('buttons.closeMenu', 'Close Menu') : t('buttons.openMenu', 'Open Menu')}
+          aria-expanded={mobileMenuOpen}
         >
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             {mobileMenuOpen ? (

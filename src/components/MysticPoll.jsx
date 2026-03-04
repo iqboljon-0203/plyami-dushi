@@ -61,6 +61,7 @@ const PollCard = ({ poll, refreshData, lang }) => {
                 key={i}
                 onClick={() => handleVote(i)}
                 disabled={isCasting}
+                aria-label={`${voted ? 'Voted' : 'Vote for'}: ${opt[`label_${lang}`]}`}
                 className="group relative py-4 rounded-xl border border-mystic-red/20 text-mystic-red text-[11px] font-black
                            tracking-[0.1em] uppercase cursor-pointer overflow-hidden transition-all duration-300
                            hover:border-mystic-red hover:text-white disabled:opacity-50"

@@ -77,6 +77,7 @@ const AboutMe = ({ sidebarExpanded, isMobile, onOpenBooking }) => {
               custom={4}
               variants={fadeUp}
               onClick={onOpenBooking}
+              aria-label={lang === 'ru' ? 'Записаться на ритуал' : 'Book a ritual'}
               className="group relative px-8 py-4 border border-mystic-red/40 text-mystic-red text-xs tracking-[0.3em] uppercase
                          overflow-hidden transition-all duration-500 cursor-pointer rounded-sm
                          hover:border-mystic-red hover:text-mystic-white shadow-lg shadow-mystic-red/5"

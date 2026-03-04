@@ -87,8 +87,9 @@ const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
             <button 
               onClick={onClose}
               className="absolute top-4 right-4 text-mystic-gray-muted hover:text-mystic-white transition-colors cursor-pointer"
+              aria-label={t('buttons.close', 'Close')}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
@@ -99,7 +100,7 @@ const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-12"
               >
-                <div className="text-5xl mb-6">🔥</div>
+                <div className="text-5xl mb-6" aria-hidden="true">🔥</div>
                 <h3 className="font-heading text-2xl text-mystic-white mb-2">
                   {t('modal.successTitle', 'Заявка принята')}
                 </h3>
@@ -119,10 +120,11 @@ const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Full Name */}
                   <div>
-                    <label className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
+                    <label htmlFor="fullName" className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
                       {t('modal.fullName', 'Имя и Фамилия')}
                     </label>
                     <input
+                      id="fullName"
                       required
                       type="text"
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-colors"
@@ -134,10 +136,11 @@ const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
 
                   {/* Category Selection */}
                   <div>
-                    <label className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
+                    <label htmlFor="category" className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
                       {t('modal.category', 'Выберите категорию')}
                     </label>
                     <select
+                      id="category"
                       className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-colors cursor-pointer appearance-none"
                       value={formData.category}
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
@@ -152,10 +155,11 @@ const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
 
                   {/* Phone Number */}
                   <div>
-                    <label className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
+                    <label htmlFor="phone" className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
                       {t('modal.phone', 'Номер телефона')}
                     </label>
                     <input
+                      id="phone"
                       required
                       type="tel"
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-colors"

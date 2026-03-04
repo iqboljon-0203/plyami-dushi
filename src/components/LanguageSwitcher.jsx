@@ -53,8 +53,10 @@ const LanguageSwitcher = ({ direction = 'down' }) => {
                    hover:bg-mystic-gray/30 hover:border-mystic-red/40 transition-all duration-300 group shadow-lg"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
+        aria-label={i18n.language === 'ru' ? 'Сменить язык' : 'Change language'}
+        aria-expanded={isOpen}
       >
-        <div className="relative flex items-center justify-center w-5 h-5 overflow-hidden rounded-full ring-1 ring-mystic-red/10">
+        <div className="relative flex items-center justify-center w-5 h-5 overflow-hidden rounded-full ring-1 ring-mystic-red/10" aria-hidden="true">
           {currentLang.flag}
         </div>
         
@@ -65,9 +67,10 @@ const LanguageSwitcher = ({ direction = 'down' }) => {
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           className="text-[9px] text-mystic-gray-muted group-hover:text-mystic-red"
+          aria-hidden="true"
         >
           <svg width="8" height="5" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M11 1L5 5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </motion.div>
       </motion.button>
@@ -82,6 +85,8 @@ const LanguageSwitcher = ({ direction = 'down' }) => {
             />
             
             <motion.div
+              id="language-dropdown"
+              role="listbox"
               initial={{ 
                 opacity: 0, 
                 y: direction === 'up' ? -15 : 15, 
@@ -108,6 +113,9 @@ const LanguageSwitcher = ({ direction = 'down' }) => {
                   <motion.button
                     key={lang.code}
                     onClick={() => switchLanguage(lang.code)}
+                    role="option"
+                    aria-selected={isActive}
+                    aria-label={lang.label}
                     className={`
                       w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer
                       transition-all duration-300 mb-0.5 last:mb-0
@@ -118,7 +126,7 @@ const LanguageSwitcher = ({ direction = 'down' }) => {
                     `}
                     whileHover={{ x: 4 }}
                   >
-                    <div className="flex items-center justify-center w-5 h-5 overflow-hidden rounded-full shrink-0 shadow-inner">
+                    <div className="flex items-center justify-center w-5 h-5 overflow-hidden rounded-full shrink-0 shadow-inner" aria-hidden="true">
                       {lang.flag}
                     </div>
                     
