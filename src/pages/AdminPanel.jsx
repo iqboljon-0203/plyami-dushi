@@ -569,6 +569,54 @@ const AdminPanel = () => {
                 {about ? (
                   <div className="bg-mystic-black/40 border border-white/5 rounded-3xl p-10 backdrop-blur-md space-y-12">
                      <div className="space-y-8">
+                         {/* Image Upload for About Me */}
+                         <div className="space-y-4">
+                            <label className="text-[10px] uppercase font-black tracking-widest text-mystic-red ml-1">Визуальное Воплощение (Фото)</label>
+                            <div className="flex flex-col md:flex-row gap-8 items-start">
+                               <div className="w-full md:w-64 aspect-[4/5] rounded-3xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center relative group shadow-2xl">
+                                  {about.image_url ? (
+                                    <img src={about.image_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                  ) : (
+                                    <div className="text-center p-6 opacity-30">
+                                       <Upload size={40} className="mx-auto mb-2 text-mystic-red" />
+                                       <span className="text-[10px] uppercase font-bold tracking-[0.2em]">Нет Образа</span>
+                                    </div>
+                                  )}
+                                  {uploading && (
+                                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                                        <Loader2 size={32} className="animate-spin text-mystic-red" />
+                                     </div>
+                                  )}
+                               </div>
+                               
+                               <div className="flex-grow space-y-4 w-full">
+                                  <div className="space-y-2">
+                                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1">Путь к Фото (URL)</label>
+                                     <div className="flex flex-col sm:flex-row gap-3">
+                                        <input 
+                                          className="flex-grow bg-white/5 border border-white/10 rounded-2xl p-4 text-xs outline-none focus:border-mystic-red/50" 
+                                          value={about.image_url || ''} 
+                                          onChange={e => setAbout({...about, image_url: e.target.value})} 
+                                          placeholder="Прямая ссылка или Magic Upload..." 
+                                        />
+                                        <label className="flex-shrink-0 flex items-center justify-center gap-3 bg-mystic-red/10 border border-mystic-red/30 px-8 py-4 sm:py-0 rounded-2xl cursor-pointer hover:bg-mystic-red/20 transition-all font-bold text-[10px] uppercase tracking-widest text-mystic-red">
+                                           {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                                           Загрузить
+                                           <input type="file" className="hidden" accept="image/*" onChange={async e => {
+                                              if (!e.target.files?.[0]) return;
+                                              const url = await uploadImage(e.target.files[0]);
+                                              if (url) setAbout({...about, image_url: url});
+                                           }} />
+                                        </label>
+                                     </div>
+                                  </div>
+                                  <p className="text-xs text-mystic-gray-muted italic">
+                                     Рекомендуется использовать вертикальное фото (портрет) высокого качества для гармоничного отображения.
+                                  </p>
+                               </div>
+                            </div>
+                         </div>
+
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
                             <div className="space-y-3">
                                <label className="text-[10px] uppercase font-black tracking-widest text-mystic-red">Имя Алхимика / Титул (RU)</label>
@@ -633,6 +681,7 @@ const AdminPanel = () => {
                           title_en: t('about.title', { lng: 'en' }),
                           description_ru: t('about.description', { lng: 'ru' }),
                           description_en: t('about.description', { lng: 'en' }),
+                          image_url: '',
                           stats: [
                             { label_ru: t('about.years', { lng: 'ru' }), label_en: t('about.years', { lng: 'en' }), value: '10+' },
                             { label_ru: t('about.rituals', { lng: 'ru' }), label_en: t('about.rituals', { lng: 'en' }), value: '500+' },
