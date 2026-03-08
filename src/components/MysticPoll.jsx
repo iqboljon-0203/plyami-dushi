@@ -81,7 +81,7 @@ const PollCard = ({ poll, refreshData, lang }) => {
                  <div key={i} className="space-y-2">
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-mystic-gray-muted">
                        <span>{opt[`label_${lang}`]}</span>
-                       <span className="text-mystic-red">{percent}%</span>
+                       <span className="text-mystic-red">{opt.votes || 0}</span>
                     </div>
                     <div className="h-1 rounded-full bg-white/5 overflow-hidden">
                        <motion.div 

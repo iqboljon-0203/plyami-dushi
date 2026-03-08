@@ -1,5 +1,6 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from './lib/supabase';
 import useMediaQuery from './hooks/useMediaQuery';
 import SmokeBackground from './components/SmokeBackground';
 import Sidebar from './components/Sidebar';
@@ -39,6 +40,31 @@ function App() {
 
   // On large screens, sidebar is always open. Otherwise, it depends on hover or mobile menu state
   const sidebarExpanded = isLargeScreen || hoverExpanded || mobileMenuOpen;
+
+  // Detect subdomain for admin access
+  const hostname = window.location.hostname;
+  const isAdminSubdomain = hostname.startsWith('admin.') || hostname.startsWith('www.admin.');
+
+  useEffect(() => {
+    const logVisit = async () => {
+      // Don't track if on admin subdomain or if already tracked in this session
+      if (isAdminSubdomain || sessionStorage.getItem('visited_session')) return;
+      
+      try {
+        const { error } = await supabase.from('site_visits').insert([{ 
+          user_agent: navigator.userAgent,
+          path: window.location.pathname
+        }]);
+        
+        // If successful, or if table doesn't exist yet (we'll silently ignore), mark as visited
+        sessionStorage.setItem('visited_session', 'true');
+      } catch (err) {
+        console.error('Visit logging error:', err);
+      }
+    };
+
+    logVisit();
+  }, [isAdminSubdomain]);
 
   const MainLayout = () => (
     <div id="app-root" className="relative min-h-screen bg-mystic-black">
@@ -111,10 +137,6 @@ function App() {
       />
     </div>
   );
-
-  // Detect subdomain for admin access
-  const hostname = window.location.hostname;
-  const isAdminSubdomain = hostname.startsWith('admin.') || hostname.startsWith('www.admin.');
 
   if (isAdminSubdomain) {
     return (

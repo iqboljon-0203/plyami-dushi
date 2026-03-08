@@ -21,7 +21,8 @@ import {
   Database,
   RefreshCcw,
   Menu,
-  X
+  X,
+  Activity
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -64,6 +65,8 @@ const AdminPanel = () => {
   const [categories, setCategories] = useState([]);
   const [polls, setPolls] = useState([]);
   const [about, setAbout] = useState(null);
+  const [visits, setVisits] = useState([]);
+  const [visitsError, setVisitsError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('categories'); 
   const [editingItem, setEditingItem] = useState(null);
@@ -88,16 +91,24 @@ const AdminPanel = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [catRes, pollsRes, aboutRes] = await Promise.all([
+      const [catRes, pollsRes, aboutRes, visitsRes] = await Promise.all([
         supabase.from('categories').select('*').order('id'),
         supabase.from('polls').select('*').order('id', { ascending: false }),
-        supabase.from('about_content').select('*').maybeSingle()
+        supabase.from('about_content').select('*').maybeSingle(),
+        supabase.from('site_visits').select('id, created_at, path').order('created_at', { ascending: false }).limit(1000)
       ]);
 
       if (catRes.error) throw catRes.error;
       setCategories(catRes.data || []);
       setPolls(pollsRes.data || []);
       setAbout(aboutRes.data);
+      
+      if (visitsRes.error) {
+        setVisitsError(true);
+      } else {
+        setVisits(visitsRes.data || []);
+        setVisitsError(false);
+      }
     } catch (error) {
       toast.error('Связь с Оракулом прервана: ' + error.message);
     } finally {
@@ -286,6 +297,7 @@ const AdminPanel = () => {
             { id: 'categories', label: 'Категории', icon: Layout },
             { id: 'poll', label: 'Мистические опросы', icon: MessageSquare },
             { id: 'about', label: 'Ваше Наследие', icon: User },
+            { id: 'visits', label: 'Статистика Посещений', icon: Activity },
           ].map(tab => (
             <button
               key={tab.id}
@@ -328,7 +340,7 @@ const AdminPanel = () => {
               Священный Храм Админа
             </div>
             <h1 className="text-3xl lg:text-5xl font-heading text-white text-glow mb-2">
-              {activeTab === 'categories' ? 'Алхимический Каталог' : activeTab === 'poll' ? 'Провидческий Опрос' : 'Летописец Пламени'}
+              {activeTab === 'categories' ? 'Алхимический Каталог' : activeTab === 'poll' ? 'Провидческий Опрос' : activeTab === 'visits' ? 'Статистика Посещений' : 'Летописец Пламени'}
             </h1>
             <p className="text-mystic-gray-muted max-w-lg text-sm lg:text-base">Управляйте мистическими элементами вашего цифрового присутствия. Каждое изменение резонирует сквозь эфир.</p>
           </div>
@@ -482,7 +494,7 @@ const AdminPanel = () => {
                         <div className="grid grid-cols-1 gap-4">
                           {((isAddingPoll ? newPoll : editingPoll).options || []).map((opt, i) => (
                             <div key={i} className="flex gap-4 items-center bg-white/5 border border-white/5 rounded-2xl p-6">
-                             <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4">
                                <input className="bg-transparent border-b border-white/10 p-2 text-sm outline-none focus:border-mystic-red" value={opt.label_ru} placeholder="Вариант (RU)" onChange={e => {
                                  const p = isAddingPoll ? newPoll : editingPoll;
                                  const opts = [...p.options];
@@ -493,6 +505,12 @@ const AdminPanel = () => {
                                  const p = isAddingPoll ? newPoll : editingPoll;
                                  const opts = [...p.options];
                                  opts[i].label_en = e.target.value;
+                                 isAddingPoll ? setNewPoll({...newPoll, options: opts}) : setEditingPoll({...editingPoll, options: opts});
+                               }} />
+                               <input type="number" className="bg-transparent border-b border-white/10 p-2 text-sm outline-none focus:border-mystic-red text-mystic-red font-bold" value={opt.votes !== undefined ? opt.votes : ''} placeholder="Голоса (Votes)" onChange={e => {
+                                 const p = isAddingPoll ? newPoll : editingPoll;
+                                 const opts = [...p.options];
+                                 opts[i].votes = e.target.value === '' ? '' : parseInt(e.target.value) || 0;
                                  isAddingPoll ? setNewPoll({...newPoll, options: opts}) : setEditingPoll({...editingPoll, options: opts});
                                }} />
                              </div>
@@ -695,6 +713,90 @@ const AdminPanel = () => {
                         toast.error(e.message, { id: toastId });
                       }
                    }} className="px-10 py-5 bg-mystic-red rounded-2xl font-bold uppercase tracking-widest hover:scale-105 transition-all">Начать запись Наследия</button>
+                )}
+              </motion.div>
+            )}
+
+            {/* --- VISITS SECTION --- */}
+            {activeTab === 'visits' && (
+              <motion.div key="visits" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8 max-w-5xl">
+                {visitsError ? (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-3xl p-10 backdrop-blur-md">
+                    <Activity size={48} className="text-red-500/50 mb-6" />
+                    <h2 className="text-2xl font-bold font-heading text-red-500 mb-4">Таблица посещений не найдена (404)</h2>
+                    <p className="text-mystic-gray-muted mb-6 leading-relaxed">
+                      Чтобы видеть статистику посещений, необходимо создать таблицу <b>site_visits</b> в базе данных Supabase. Перейдите в Supabase (SQL Editor) и выполните следующий код:
+                    </p>
+                    <div className="bg-black/50 p-6 rounded-2xl border border-white/5 font-mono text-sm leading-relaxed overflow-x-auto text-white/70">
+                      <pre>{`CREATE TABLE public.site_visits (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  user_agent TEXT,
+  path TEXT
+);
+
+-- Установка прав RLS (Public Insert, Admin Select)
+ALTER TABLE public.site_visits ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public insert" ON public.site_visits
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow admin select" ON public.site_visits
+  FOR SELECT USING (auth.role() = 'authenticated');`}</pre>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="bg-mystic-black/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-mystic-red/10 blur-3xl group-hover:bg-mystic-red/20 transition-all pointer-events-none" />
+                        <p className="text-[10px] uppercase font-black text-mystic-gray-muted tracking-widest mb-2">Всего Посещений</p>
+                        <h3 className="text-5xl font-heading text-white">{visits.length}</h3>
+                      </div>
+                      <div className="bg-mystic-black/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-mystic-red/10 blur-3xl group-hover:bg-mystic-red/20 transition-all pointer-events-none" />
+                        <p className="text-[10px] uppercase font-black text-mystic-gray-muted tracking-widest mb-2">За сегодня</p>
+                        <h3 className="text-5xl font-heading text-mystic-red">
+                          {visits.filter(v => new Date(v.created_at).toDateString() === new Date().toDateString()).length}
+                        </h3>
+                      </div>
+                      <div className="bg-mystic-black/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-mystic-red/10 blur-3xl group-hover:bg-mystic-red/20 transition-all pointer-events-none" />
+                        <p className="text-[10px] uppercase font-black text-mystic-gray-muted tracking-widest mb-2">За неделю</p>
+                        <h3 className="text-5xl font-heading text-white">
+                          {visits.filter(v => {
+                            const date = new Date(v.created_at);
+                            const lastWeek = new Date();
+                            lastWeek.setDate(lastWeek.getDate() - 7);
+                            return date >= lastWeek;
+                          }).length}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="bg-mystic-black/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md overflow-hidden">
+                      <h3 className="text-lg font-heading text-white mb-6 uppercase tracking-[0.2em] border-b border-white/5 pb-4">Последние Сеансы</h3>
+                      <div className="space-y-4">
+                        {visits.slice(0, 50).map((v, i) => (
+                          <div key={v.id || i} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-3 border-b border-white/5 last:border-0 hover:bg-white/5 rounded-lg px-4 transition-all -mx-4">
+                            <div className="flex items-center gap-4">
+                              <span className="w-2 h-2 rounded-full bg-mystic-red/50 shadow-[0_0_8px_#d32f2f]" />
+                              <div>
+                                <p className="text-sm font-bold text-white mb-0.5">{new Date(v.created_at).toLocaleString('ru-RU', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                <p className="text-[10px] font-mono text-mystic-gray-muted truncate max-w-[200px] md:max-w-md">{v.path || '/'}</p>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-mono px-3 py-1 bg-white/5 text-white/50 rounded-lg truncate max-w-[150px] md:max-w-[300px]">
+                              {v.user_agent ? v.user_agent.split(' ')[0] : 'Unknown'}
+                            </span>
+                          </div>
+                        ))}
+                        {visits.length === 0 && (
+                          <div className="py-12 text-center text-mystic-gray-muted italic">Пока нет записей о посещениях. Эфир чист.</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </motion.div>
             )}

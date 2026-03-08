@@ -1,17 +1,33 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
-import candles from '../data/candles';
+import { useState, useEffect } from 'react';
+import { useAppContext } from '../context/AppContext';
 
-const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
-  const { t } = useTranslation();
+const BookingModal = ({ isOpen, onClose, initialCategory = '' }) => {
+  const { t, i18n } = useTranslation();
+  const { categories } = useAppContext();
+
   const [formData, setFormData] = useState({
     fullName: '',
-    category: initialCategory,
-    phone: '+998 '
+    category: '',
+    phone: '+'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Find valid category ID to pre-select
+      const validInitial = categories.find(c => c.id === initialCategory);
+      const defaultId = validInitial ? initialCategory : (categories.length > 0 ? categories[0].id : '');
+      
+      setFormData(prev => ({
+        ...prev,
+        category: defaultId,
+        phone: prev.phone === '+' || !prev.phone ? '+' : prev.phone
+      }));
+    }
+  }, [isOpen, initialCategory, categories]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,11 +36,15 @@ const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
     const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
     const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
+    const selectedCat = categories.find(c => c.id === formData.category);
+    const langKey = i18n.language === 'ru' ? 'ru' : 'en';
+    const catLabel = selectedCat?.dbData?.[`label_${langKey}`] || t(`candles.${formData.category}.label`, formData.category);
+
     const message = `
 🌟 *Новая заявка: ПЛАМЯ ДУШИ*
 
 👤 *Имя:* ${formData.fullName}
-🔥 *Категория:* ${t(`candles.${formData.category}.label`)}
+🔥 *Категория:* ${catLabel}
 📞 *Телефон:* ${formData.phone}
 
 ---
@@ -47,7 +67,8 @@ const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
         setTimeout(() => {
           onClose();
           setIsSuccess(false);
-          setFormData({ fullName: '', category: initialCategory, phone: '+998 ' });
+          const defaultId = categories.length > 0 ? categories[0].id : '';
+          setFormData({ fullName: '', category: defaultId, phone: '+' });
         }, 2500);
       } else {
         console.error('Telegram API error:', await response.text());
@@ -117,71 +138,58 @@ const BookingModal = ({ isOpen, onClose, initialCategory = 'red' }) => {
                   {t('modal.subtitle', 'Заполните форму, и мы поможем вам выбрать идеальную свечу.')}
                 </p>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Full Name */}
-                  <div>
-                    <label htmlFor="fullName" className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
-                      {t('modal.fullName', 'Имя и Фамилия')}
-                    </label>
-                    <input
-                      id="fullName"
-                      required
-                      type="text"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-colors"
-                      placeholder={t('modal.placeholderName', 'Алишер Каримов')}
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                    />
-                  </div>
+                <div className="space-y-4">
+                  {/* Phone */}
+                  <a href="tel:+79175021584" className="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-mystic-red/30 rounded-xl p-4 transition-all group">
+                    <div className="w-10 h-10 rounded-full bg-mystic-red/10 flex items-center justify-center shrink-0 group-hover:bg-mystic-red/20 transition-colors">
+                      <svg className="w-5 h-5 text-mystic-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-[10px] tracking-widest text-mystic-gray-muted uppercase mb-1">
+                        {t('contact.phone', 'Номер телефона')}
+                      </div>
+                      <div className="text-xl text-mystic-white font-medium group-hover:text-mystic-red transition-colors">
+                        +7 (917) 502-15-84
+                      </div>
+                    </div>
+                  </a>
 
-                  {/* Category Selection */}
-                  <div>
-                    <label htmlFor="category" className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
-                      {t('modal.category', 'Выберите категорию')}
-                    </label>
-                    <select
-                      id="category"
-                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-colors cursor-pointer appearance-none"
-                      value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    >
-                      {candles.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {t(`candles.${c.id}.label`)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Email */}
+                  <a href="mailto:Irodianahell@gmail.com" className="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-mystic-red/30 rounded-xl p-4 transition-all group">
+                    <div className="w-10 h-10 rounded-full bg-mystic-red/10 flex items-center justify-center shrink-0 group-hover:bg-mystic-red/20 transition-colors">
+                      <svg className="w-5 h-5 text-mystic-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-[10px] tracking-widest text-mystic-gray-muted uppercase mb-1">
+                        {t('contact.email', 'Email (Связь со мной)')}
+                      </div>
+                      <div className="text-lg text-mystic-white font-medium group-hover:text-mystic-red transition-colors">
+                        Irodianahell@gmail.com
+                      </div>
+                    </div>
+                  </a>
 
-                  {/* Phone Number */}
-                  <div>
-                    <label htmlFor="phone" className="block text-[10px] tracking-[0.2em] uppercase text-mystic-red mb-2 font-bold">
-                      {t('modal.phone', 'Номер телефона')}
-                    </label>
-                    <input
-                      id="phone"
-                      required
-                      type="tel"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-mystic-white focus:outline-none focus:border-mystic-red/50 transition-colors"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    />
-                  </div>
-
-                  {/* Submit Button */}
-                  <motion.button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-4 rounded-lg bg-mystic-red text-mystic-white font-bold tracking-[0.2em] uppercase text-xs shadow-lg shadow-mystic-red/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden relative group"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="relative z-10">
-                      {isSubmitting ? t('modal.sending', 'Отправка...') : t('modal.submit', 'Отправить запрос')}
-                    </span>
-                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                  </motion.button>
-                </form>
+                  {/* Telegram */}
+                  <a href="https://t.me/Irodianahell666" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 bg-white/5 border border-white/10 hover:border-mystic-red/30 rounded-xl p-4 transition-all group">
+                    <div className="w-10 h-10 rounded-full bg-mystic-red/10 flex items-center justify-center shrink-0 group-hover:bg-mystic-red/20 transition-colors">
+                      <svg className="w-5 h-5 text-mystic-red ml-[-2px]" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-[10px] tracking-widest text-mystic-gray-muted uppercase mb-1">
+                        {t('contact.telegram', 'Telegram')}
+                      </div>
+                      <div className="text-lg text-mystic-white font-medium group-hover:text-mystic-red transition-colors">
+                        @Irodianahell666
+                      </div>
+                    </div>
+                  </a>
+                </div>
               </>
             )}
           </motion.div>

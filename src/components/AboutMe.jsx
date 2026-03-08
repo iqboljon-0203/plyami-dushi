@@ -128,19 +128,27 @@ const AboutMe = ({ sidebarExpanded, isMobile, onOpenBooking }) => {
               ))}
             </div>
 
-            <motion.button
-              onClick={onOpenBooking}
-              className="group relative px-10 py-4 border border-mystic-red/40 text-mystic-red rounded-sm overflow-hidden 
-                         text-[10px] tracking-[0.4em] font-bold uppercase hover:border-mystic-red transition-all"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+            <motion.a
+              href="tel:+79175021584"
+              className="inline-flex items-center gap-4 py-4 px-6 rounded-xl border border-white/5 bg-white/[0.01] hover:border-mystic-red/20 transition-all group w-full sm:w-auto"
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <span className="relative z-10 transition-colors duration-500 group-hover:text-white">
-                {lang === 'ru' ? 'ЗАПИСАТЬСЯ' : 'BOOK RITUAL'}
-              </span>
-              <div className="absolute inset-0 bg-mystic-red -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out" />
-            </motion.button>
+              <div className="w-10 h-10 shrink-0 rounded-full bg-mystic-red/5 flex items-center justify-center border border-mystic-red/10 group-hover:bg-mystic-red/10 group-hover:border-mystic-red/30 transition-all">
+                <svg className="w-4 h-4 text-mystic-red text-glow opacity-80 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[9px] tracking-[0.15em] font-black text-mystic-gray-muted uppercase mb-1">
+                   {lang === 'ru' ? 'ТЕЛЕФОН ДЛЯ СВЯЗИ' : 'PHONE CONTACT'}
+                </span>
+                <span className="font-heading text-xl sm:text-2xl text-mystic-white group-hover:text-mystic-red text-glow transition-colors tracking-wider">
+                  +7 (917) 502-15-84
+                </span>
+              </div>
+            </motion.a>
           </div>
         </div>
       </div>
